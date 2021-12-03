@@ -31,9 +31,9 @@ fn part1() {
 const WINDOW_SIZE: usize = 3;
 
 // This was my original implementation. I didn't catch the simplification
-// that you can just compare A and D with a window that looks like:
+// that you can just compare A and D, where:
 //
-// A + B + C < A + B + C + D
+// A + B + C < B + C + D
 // simplifies to
 // A < D
 fn part2() {

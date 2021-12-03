@@ -1,7 +1,3 @@
-[package]
-
-license = "MIT"
-
 [workspace]
 
 members = ["day*"]
