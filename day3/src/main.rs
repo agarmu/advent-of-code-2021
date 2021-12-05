@@ -13,6 +13,29 @@ fn bit_matches(number: u16, position: usize, expected_bit: u16) -> bool {
     return ((number & mask) >> position) == (expected_bit as u16);
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::bit_matches;
+
+    #[test]
+    fn bit_matches_number() {
+        assert_eq!(bit_matches(0b10010, 4, 1), true);
+        assert_eq!(bit_matches(0b10010, 3, 0), true);
+        assert_eq!(bit_matches(0b10010, 2, 0), true);
+        assert_eq!(bit_matches(0b10010, 1, 1), true);
+        assert_eq!(bit_matches(0b10010, 0, 0), true);
+    }
+
+    #[test]
+    fn bit_matches_inverse() {
+        assert_eq!(bit_matches(0b10010, 4, 0), false);
+        assert_eq!(bit_matches(0b10010, 3, 1), false);
+        assert_eq!(bit_matches(0b10010, 2, 1), false);
+        assert_eq!(bit_matches(0b10010, 1, 0), false);
+        assert_eq!(bit_matches(0b10010, 0, 1), false);
+    }
+}
+
 fn part1() -> u64 {
     let numbers = get_numbers();
     let mask: u16 = 0x0FFF;
@@ -46,29 +69,6 @@ fn part1() -> u64 {
     );
 
     return multiplied;
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::bit_matches;
-
-    #[test]
-    fn bit_matches_binary() {
-        assert_eq!(bit_matches(0b10010, 4, 1), true);
-        assert_eq!(bit_matches(0b10010, 3, 0), true);
-        assert_eq!(bit_matches(0b10010, 2, 0), true);
-        assert_eq!(bit_matches(0b10010, 1, 1), true);
-        assert_eq!(bit_matches(0b10010, 0, 0), true);
-    }
-
-    #[test]
-    fn bit_does_not_match_binary() {
-        assert_eq!(bit_matches(0b10010, 4, 0), false);
-        assert_eq!(bit_matches(0b10010, 3, 1), false);
-        assert_eq!(bit_matches(0b10010, 2, 1), false);
-        assert_eq!(bit_matches(0b10010, 1, 0), false);
-        assert_eq!(bit_matches(0b10010, 0, 1), false);
-    }
 }
 
 fn part2() {
