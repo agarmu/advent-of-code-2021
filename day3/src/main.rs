@@ -8,6 +8,11 @@ fn get_numbers() -> Vec<u16> {
         .collect::<Vec<u16>>();
 }
 
+fn bit_matches(number: u16, position: usize, expected_bit: u16) -> bool {
+    let mask = 1 << position;
+    return ((number & mask) >> position) == (expected_bit as u16);
+}
+
 fn part1() -> u64 {
     let numbers = get_numbers();
     let mask: u16 = 0x0FFF;
@@ -17,9 +22,7 @@ fn part1() -> u64 {
     // tally up counts in each position
     for number in numbers {
         for position in 0..BIT_LENGTH {
-            let mask = 1 << position;
-
-            if ((mask & number) >> position) == 1 {
+            if bit_matches(number, position, 1) {
                 counts[position] += 1;
             }
         }
@@ -43,11 +46,6 @@ fn part1() -> u64 {
     );
 
     return multiplied;
-}
-
-fn bit_matches(number: u16, position: usize, expected_bit: u16) -> bool {
-    let mask = 1 << position;
-    return ((number & mask) >> position) == (expected_bit as u16);
 }
 
 #[cfg(test)]
@@ -81,28 +79,21 @@ fn part2() {
 
     fn compute_rating(search: BitSearch) -> u16 {
         let mut numbers = get_numbers();
-        let mut counts: [usize; BIT_LENGTH];
-
+        let mut counts: [usize; BIT_LENGTH] = [0; BIT_LENGTH];
         let mut pos = BIT_LENGTH;
 
         while numbers.len() > 1 {
+            pos -= 1;
             let mut current_total = numbers.len();
             let half_total = current_total as f32 / 2.0;
 
-            // tally up counts in each position
-            counts = [0; BIT_LENGTH];
-
             for number in &numbers {
-                for position in 0..BIT_LENGTH {
-                    let mask = 1 << position;
-
-                    if ((mask & number) >> position) == 1 {
-                        counts[position] += 1;
-                    }
+                if bit_matches(*number, pos, 1) {
+                    counts[pos] += 1;
                 }
             }
 
-            let count = counts[pos - 1];
+            let count = counts[pos];
             let common_bit = match search {
                 BitSearch::MostCommon => {
                     if (count as f32) >= half_total {
@@ -121,7 +112,7 @@ fn part2() {
             };
 
             numbers.retain(|number| {
-                let matched = bit_matches(*number, pos - 1, common_bit);
+                let matched = bit_matches(*number, pos, common_bit);
 
                 if !matched {
                     current_total -= 1;
@@ -129,8 +120,6 @@ fn part2() {
 
                 return matched || current_total == 0;
             });
-
-            pos -= 1;
         }
 
         assert_eq!(numbers.len(), 1);
