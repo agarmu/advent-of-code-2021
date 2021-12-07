@@ -1,9 +1,8 @@
-use std::{collections::HashMap, fmt};
+use std::{cmp::max, collections::HashMap, fmt};
 
 static INPUT_FILE: &'static str = include_str!("input.txt");
 
 type Point = (u32, u32);
-type Bounds = (u32, u32);
 
 fn get_lines(input: &str) -> Vec<(Point, Point)> {
     return input
@@ -27,13 +26,15 @@ fn get_lines(input: &str) -> Vec<(Point, Point)> {
 #[derive(Debug, Default)]
 struct SeaFloor {
     vents: HashMap<Point, u32>,
-    bounds: Bounds,
 }
 
 impl fmt::Display for SeaFloor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (row, column) = self.bounds;
+        let (row, column) = self.vents.keys().fold((0, 0), |accum, point| {
+            (max(accum.0, point.0), max(accum.1, point.1))
+        });
 
+        // usually I print row first, but this matches the output from the example
         for c in 0..=column {
             for r in 0..=row {
                 let count = self.vents.get(&(r, c));
@@ -56,26 +57,7 @@ fn compute_vent_intersections(input: &str, with_diagonals: bool) -> u64 {
         ..Default::default()
     };
 
-    let mut maxX = 0;
-    let mut maxY = 0;
-
     lines.iter().for_each(|&((x1, y1), (x2, y2))| {
-        if x1 > maxX {
-            maxX = x1;
-        }
-
-        if x2 > maxX {
-            maxX = x2;
-        }
-
-        if y1 > maxY {
-            maxY = y1;
-        }
-
-        if y2 > maxY {
-            maxY = y2;
-        }
-
         if x1 == x2 {
             let small = if y1 > y2 { y2 } else { y1 };
             let large = if y1 > y2 { y1 } else { y2 };
@@ -94,13 +76,6 @@ fn compute_vent_intersections(input: &str, with_diagonals: bool) -> u64 {
                 sea_floor.vents.insert(point, val + 1);
             }
         } else if with_diagonals {
-            // We can do a single loop once we know it's ascending or descending and the distance
-
-            // descending values
-            // 1,1 -> 3,3
-            // 3,3 -> 1,1
-
-            // 34,673 -> 610,97    (610 - 34 = 576), ()
             let descending = (x1 >= x2 && y1 >= y2) || (x1 <= x2 && y1 <= y2);
             // doesn't matter if we use x or y since we know diagonals are the same
             let distance = (x1 as i64 - x2 as i64).abs() as u32;
@@ -116,12 +91,8 @@ fn compute_vent_intersections(input: &str, with_diagonals: bool) -> u64 {
                 let val = sea_floor.vents.get(&point).unwrap_or(&0).clone();
                 sea_floor.vents.insert(point, val + 1);
             }
-        } else {
-            println!("Skipping line ({}, {}) -> ({}, {})", x1, y1, x2, y2);
         }
     });
-
-    sea_floor.bounds = (maxX, maxY);
 
     let intersections = sea_floor.vents.values().fold(0, |accum, val| {
         if *val >= 2 {
@@ -130,6 +101,8 @@ fn compute_vent_intersections(input: &str, with_diagonals: bool) -> u64 {
 
         accum
     });
+
+    // println!("{}", sea_floor);
 
     return intersections;
 }
