@@ -50,7 +50,7 @@ impl fmt::Display for SeaFloor {
     }
 }
 
-fn part1(input: &str) -> u64 {
+fn compute_vent_intersections(input: &str, with_diagonals: bool) -> u64 {
     let lines = get_lines(input);
     let mut sea_floor = SeaFloor {
         ..Default::default()
@@ -93,6 +93,29 @@ fn part1(input: &str) -> u64 {
                 let val = sea_floor.vents.get(&point).unwrap_or(&0).clone();
                 sea_floor.vents.insert(point, val + 1);
             }
+        } else if with_diagonals {
+            // We can do a single loop once we know it's ascending or descending and the distance
+
+            // descending values
+            // 1,1 -> 3,3
+            // 3,3 -> 1,1
+
+            // 34,673 -> 610,97    (610 - 34 = 576), ()
+            let descending = (x1 >= x2 && y1 >= y2) || (x1 <= x2 && y1 <= y2);
+            // doesn't matter if we use x or y since we know diagonals are the same
+            let distance = (x1 as i64 - x2 as i64).abs() as u32;
+            let leftmost_point = if x1 < x2 { (x1, y1) } else { (x2, y2) };
+
+            for i in 0..=distance {
+                let point = if descending {
+                    (leftmost_point.0 + i, leftmost_point.1 + i)
+                } else {
+                    (leftmost_point.0 + i, leftmost_point.1 - i)
+                };
+
+                let val = sea_floor.vents.get(&point).unwrap_or(&0).clone();
+                sea_floor.vents.insert(point, val + 1);
+            }
         } else {
             println!("Skipping line ({}, {}) -> ({}, {})", x1, y1, x2, y2);
         }
@@ -108,21 +131,29 @@ fn part1(input: &str) -> u64 {
         accum
     });
 
-    // dbg!(&sea_floor, lines);
-    // println!("{}", lines);
-    // println!("{}", &sea_floor);
-    println!("Number of intersections: {}", intersections);
-    // dbg!(intersections);
+    return intersections;
+}
+
+fn part1(input: &str) -> u64 {
+    let intersections = compute_vent_intersections(input, false);
+    println!("[Part 1] Number of intersections: {}", intersections);
+    return intersections;
+}
+
+fn part2(input: &str) -> u64 {
+    let intersections = compute_vent_intersections(input, true);
+    println!("[Part 2] Number of intersections: {}", intersections);
     return intersections;
 }
 
 fn main() {
-    part1(INPUT_FILE);
+    part1(INPUT_FILE); // 6710
+    part2(INPUT_FILE); // 20121
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::part1;
+    use crate::{part1, part2};
 
     #[test]
     fn part_1_test_input() {
@@ -131,15 +162,8 @@ mod tests {
     }
 
     #[test]
-    fn ranges() {
-        for x in 6..0 {
-            assert_eq!(0, 1); // should fail if this runs
-        }
+    fn part_2_test_input() {
+        let test_input = include_str!("test.txt");
+        assert_eq!(part2(test_input), 12);
     }
-
-    // #[test]
-    // fn part_2_test_input() {
-    //     let test_input = include_str!("test.txt");
-    //     assert_eq!(part2(test_input), 1924);
-    // }
 }
